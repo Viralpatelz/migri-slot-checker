@@ -1,0 +1,41 @@
+name: Migri slot check
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay runs by a few minutes)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Send current slot list to Telegram even if not new (test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migri-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check Migri
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ONLY_SERVICES: "2906a690,3e03034d"   # Work permit, Permanent residence permit
+          FORCE: ${{ inputs.force && '1' || '0' }}
+        run: python migri_checker.py
+      - name: Save state
+        run: |
+          git config user.name "migri-bot"
+          git config user.email "migri-bot@users.noreply.github.com"
+          git add state.json
+          git diff --cached --quiet || (git commit -m "state update" && git push)
