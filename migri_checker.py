@@ -64,7 +64,9 @@ def http_json(url, body=None, s=None):
         r = json.load(urllib.request.urlopen(req, timeout=30))
     except urllib.error.HTTPError as e:
         if e.code in (403, 429):
-            raise Blocked(f"HTTP {e.code}")
+            body = e.read()[:3000].decode("utf-8", "replace")
+            cf = "Cloudflare block page" if "you have been blocked" in body.lower() else "other"
+            raise Blocked(f"HTTP {e.code} on {url.split('/api/')[-1][:40]} ({cf}, ray {e.headers.get('cf-ray')})")
         raise
     time.sleep(DELAY)
     return r
@@ -175,6 +177,7 @@ def main():
         status = "blocked"
         until = now + datetime.timedelta(hours=BLOCK_PAUSE_H)
         state["blocked_until"] = until.isoformat(timespec="seconds")
+        state["last_error"] = str(e)
         state["fails"] = state.get("fails", 0) + 1
         log(f"BLOCKED by Migri ({e}); pausing {BLOCK_PAUSE_H}h")
         notify(f"⛔ Migri checker: Migri's firewall blocked the check ({e}). Pausing {BLOCK_PAUSE_H} hours, then retrying automatically.")
