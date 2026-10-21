@@ -1,10 +1,11 @@
 # Migri slot checker
 
-Checks Migri's booking system (migri.vihta.com) every 15 minutes for free appointment slots
+Checks Migri's booking system (migri.vihta.com) every hour for free appointment slots
 for **Residence permit: Work** and **Permanent residence permit**, at every office, and sends
 new slots to Telegram.
 
-- Runs on GitHub Actions (`.github/workflows/check.yml`), no PC needed.
+- Runs hourly as a Claude scheduled task (cloud). GitHub Actions is NOT used: Migri's firewall blocks GitHub's servers (403).
+  The workflow is kept for manual runs only.
 - Gentle: one request at a time (~40 per check). If Migri answers 403, it pauses 6 hours and says so on Telegram.
 - Sends a daily status message after 09:00 Helsinki time.
 - `state.json` remembers already-reported slots (committed by the workflow).
