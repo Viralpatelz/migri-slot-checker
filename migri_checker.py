@@ -142,6 +142,9 @@ def build_message(items, today, end, title):
 
 
 def main():
+    if not (os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID")):
+        log("Telegram secrets missing: add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in repo Settings > Secrets > Actions. Not checking.")
+        sys.exit(1)
     force = os.environ.get("FORCE") == "1"
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
     now = datetime.datetime.now(datetime.timezone.utc)
