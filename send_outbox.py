@@ -11,6 +11,8 @@ else:
 files = subprocess.run(["git", "diff", "--name-only", "--diff-filter=A", *rng, "--", "outbox/"],
                        capture_output=True, text=True, check=True).stdout.split()
 print(f"{len(files)} new message(s)")
+if not files:
+    sys.exit("No new outbox files found in this push (unexpected)")
 failed = 0
 for f in sorted(files):
     text = open(f, encoding="utf-8").read()
