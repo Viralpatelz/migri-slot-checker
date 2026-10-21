@@ -1,1 +1,6 @@
-{"heartbeat": "2026-10-21"}
+{
+ "heartbeat": "2026-10-21",
+ "blocked_until": "2026-10-21T21:50:35+00:00",
+ "last_error": "HTTP 403 on sessions (other, ray a4e16b365a90d30e-MCI)",
+ "fails": 1
+}
