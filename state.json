@@ -1,6 +1,9 @@
 {
  "fails": 0,
- "seen": [],
+ "seen": [
+  "Permanent residence permit|Helsingin palvelupiste (Malmi)|2026-10-22T10:00:00.000Z",
+  "Residence permit: Work|Helsingin palvelupiste (Malmi)|2026-10-22T10:00:00.000Z"
+ ],
  "last_ok": "2026-10-21",
  "heartbeat": "2026-10-21"
 }
