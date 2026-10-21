@@ -1,0 +1,32 @@
+name: Send Telegram alerts
+
+# The hourly Migri check runs in Claude's cloud (Migri blocks GitHub's servers).
+# It commits each alert as a file in outbox/; this workflow sends new ones to Telegram
+# using the TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID repo secrets.
+on:
+  push:
+    branches: [main]
+    paths: ["outbox/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-send
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Send new outbox messages
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: python3 send_outbox.py

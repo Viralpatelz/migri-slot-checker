@@ -73,7 +73,16 @@ def http_json(url, body=None, s=None):
 
 
 def notify(text):
+    """Send directly if Telegram env vars exist; with OUTBOX=1, write the message to outbox/
+    instead (the "Send Telegram alerts" GitHub workflow delivers it using the repo secrets)."""
     tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    if os.environ.get("OUTBOX") == "1":
+        d = HERE / "outbox"
+        d.mkdir(exist_ok=True)
+        stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+        (d / f"{stamp}.txt").write_text(text, encoding="utf-8")
+        log("message queued in outbox/")
+        return
     if not (tok and chat):
         log("No Telegram secrets; message would be:\n" + text)
         return
@@ -144,8 +153,8 @@ def build_message(items, today, end, title):
 
 
 def main():
-    if not (os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID")):
-        log("Telegram secrets missing: add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in repo Settings > Secrets > Actions. Not checking.")
+    if os.environ.get("OUTBOX") != "1" and not (os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID")):
+        log("No way to send alerts: set OUTBOX=1, or TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID. Not checking.")
         sys.exit(1)
     force = os.environ.get("FORCE") == "1"
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
@@ -169,7 +178,7 @@ def main():
         if new:
             notify(build_message(new, d0, d1, "free slots now" if force else "NEW free slots"))
         elif force:
-            notify(f"🇫🇮 Migri checker test (GitHub): no free Work/PR slots right now ({d0:%d.%m}–{d1:%d.%m}). I'll message you when one appears.")
+            notify(f"🇫🇮 Migri checker test: no free Work/PR slots right now ({d0:%d.%m}–{d1:%d.%m}). I'll message you when one appears.")
         state["seen"] = sorted(key(x) for x in slots)
         state["last_ok"] = today  # date only, avoids a commit every run
         log(f"{len(new)} new")
