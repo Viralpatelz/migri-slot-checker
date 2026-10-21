@@ -1,11 +1,9 @@
 name: Migri slot check
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"   # every 15 min (GitHub may delay runs by a few minutes)
-  push:
-    branches: [main]
-    paths: ["migri_checker.py", ".github/workflows/check.yml"]   # run right away when the code changes
+  # schedule disabled: Migri's firewall blocks GitHub's servers (403 on first request, 21.10.2026)
+  # schedule:
+  #   - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       force:
